@@ -140,7 +140,11 @@ public class DrugBank2BioPAXConverter {
 
             UnificationXref unificationXref = create(UnificationXref.class, "uxref_" + pid);
             model.add(unificationXref);
-            unificationXref.setDb(polypeptideType.getSource());
+            String source = polypeptideType.getSource();
+            if(source == null || source.isEmpty()) {
+                source = "UniProt KnowledgeBase";
+            }
+            unificationXref.setDb(source);
             unificationXref.setId(pid);
             proteinReference.addXref(unificationXref);
 
@@ -181,6 +185,7 @@ public class DrugBank2BioPAXConverter {
 
             modificationFeature.setModificationType(createSeqModVocab(model, term));
             protein.addFeature(modificationFeature);
+            protein.getEntityReference().addEntityFeature(modificationFeature);
         }
 
         return protein;
