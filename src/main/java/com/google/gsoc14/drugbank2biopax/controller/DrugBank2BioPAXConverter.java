@@ -31,7 +31,21 @@ public class DrugBank2BioPAXConverter {
     }
 
     protected <T extends BioPAXElement> T create(Class<T> aClass, String id) {
-        return getBioPAXFactory().create(aClass, id);
+        return getBioPAXFactory().create(aClass, completeId(id));
+    }
+
+    private String XMLBase = "http://www.drugbank.ca/#";
+
+    public String getXMLBase() {
+        return XMLBase;
+    }
+
+    public void setXMLBase(String XMLBase) {
+        this.XMLBase = XMLBase;
+    }
+
+    private String completeId(String partialId) {
+        return getXMLBase() + partialId;
     }
 
     public Model convert(InputStream drugBankStream) throws JAXBException {
@@ -55,6 +69,7 @@ public class DrugBank2BioPAXConverter {
 
         log.info("Conversion done. " + drugTargets + " drug targets converted into reactions.");
 
+        model.setXmlBase(getXMLBase());
         return model;
     }
 
@@ -114,7 +129,7 @@ public class DrugBank2BioPAXConverter {
     private Process createInhibitionReaction(Model model, PolypeptideType polypeptideType) {
         String pid = polypeptideType.getId();
         String rxnId = "rxn_" + pid;
-        BiochemicalReaction rxn = (BiochemicalReaction) model.getByID(rxnId);
+        BiochemicalReaction rxn = (BiochemicalReaction) model.getByID(completeId(rxnId));
         if(rxn != null) {
             return rxn;
         }
@@ -132,7 +147,7 @@ public class DrugBank2BioPAXConverter {
         String pid = polypeptideType.getId();
         String refId = "ref_" + pid;
         String speId = term + "_" + pid;
-        ProteinReference proteinReference = (ProteinReference) model.getByID(refId);
+        ProteinReference proteinReference = (ProteinReference) model.getByID(completeId(refId));
         if(proteinReference == null) {
             proteinReference = create(ProteinReference.class, refId);
             model.add(proteinReference);
@@ -161,7 +176,7 @@ public class DrugBank2BioPAXConverter {
             String organism = polypeptideType.getOrganism().getValue();
             if(organism != null && !organism.isEmpty()) {
                 String bioSrcId = "biosrc_" + organism.hashCode();
-                BioSource bioSource = (BioSource) model.getByID(bioSrcId);
+                BioSource bioSource = (BioSource) model.getByID(completeId(bioSrcId));
                 if (bioSource == null) {
                     bioSource = create(BioSource.class, bioSrcId);
                     model.add(bioSource);
@@ -173,7 +188,7 @@ public class DrugBank2BioPAXConverter {
             }
         }
 
-        Protein protein = (Protein) model.getByID(speId);
+        Protein protein = (Protein) model.getByID(completeId(speId));
         if(protein == null) {
             protein = create(Protein.class, speId);
             model.add(protein);
@@ -193,7 +208,7 @@ public class DrugBank2BioPAXConverter {
 
     private SequenceModificationVocabulary createSeqModVocab(Model model, String term) {
         String vocabId = "vocab_" + term;
-        SequenceModificationVocabulary sequenceModificationVocabulary = (SequenceModificationVocabulary) model.getByID(vocabId);
+        SequenceModificationVocabulary sequenceModificationVocabulary = (SequenceModificationVocabulary) model.getByID(completeId(vocabId));
         if(sequenceModificationVocabulary == null) {
             sequenceModificationVocabulary = create(SequenceModificationVocabulary.class, vocabId);
             model.add(sequenceModificationVocabulary);
