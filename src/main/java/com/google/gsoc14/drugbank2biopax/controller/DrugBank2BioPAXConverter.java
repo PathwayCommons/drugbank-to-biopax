@@ -78,7 +78,11 @@ public class DrugBank2BioPAXConverter {
         model.add(control);
         control.addController(smallMolecule);
         for (PolypeptideType polypeptideType : targetType.getPolypeptide()) {
-            control.addControlled(createInhibitionReaction(model, polypeptideType));
+            if(isAcetylation(targetType)) {
+                control.addControlled(createAcetylationReaction(model, polypeptideType));
+            } else {
+                control.addControlled(createInhibitionReaction(model, polypeptideType));
+            }
         }
         control.setControlType(decideOnControlType(targetType));
         String name = constructName(smallMolecule, targetType);
@@ -91,6 +95,16 @@ public class DrugBank2BioPAXConverter {
         return control;
     }
 
+    private boolean isAcetylation(TargetType targetType) {
+        for (String axn : targetType.getActions().getAction()) {
+            if(axn.equalsIgnoreCase("acetylation")) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private ControlType decideOnControlType(TargetType targetType) {
         // this is the reaction that inhibits the target. So the control type should be the reverse of the term
         for (String axn : targetType.getActions().getAction()) {
@@ -100,6 +114,7 @@ public class DrugBank2BioPAXConverter {
                     axn.equalsIgnoreCase("potentiator") ||
                     axn.equalsIgnoreCase("stimulator") ||
                     axn.equalsIgnoreCase("cofactor") ||
+                    axn.equalsIgnoreCase("activator") ||
                     axn.equalsIgnoreCase("ligand") )
             {
                 return ControlType.INHIBITION;
@@ -143,10 +158,28 @@ public class DrugBank2BioPAXConverter {
         return rxn;
     }
 
+    private Process createAcetylationReaction(Model model, PolypeptideType polypeptideType) {
+        String pid = polypeptideType.getId();
+        String rxnId = "rxn_ace_" + pid;
+        BiochemicalReaction rxn = (BiochemicalReaction) model.getByID(completeId(rxnId));
+        if(rxn != null) {
+            return rxn;
+        }
+
+        rxn = create(BiochemicalReaction.class, rxnId);
+        model.add(rxn);
+        rxn.addLeft(createSPEFromPolypeptide(model, polypeptideType, null));
+        rxn.addRight(createSPEFromPolypeptide(model, polypeptideType, "acetylated"));
+        rxn.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
+
+        return rxn;
+    }
+
+
     private PhysicalEntity createSPEFromPolypeptide(Model model, PolypeptideType polypeptideType, String term) {
         String pid = polypeptideType.getId();
         String refId = "ref_" + pid;
-        String speId = term + "_" + pid;
+        String speId = (term == null ? "nomod" : term)  + "_" + pid;
         ProteinReference proteinReference = (ProteinReference) model.getByID(completeId(refId));
         if(proteinReference == null) {
             proteinReference = create(ProteinReference.class, refId);
@@ -195,12 +228,14 @@ public class DrugBank2BioPAXConverter {
             setPolypeptideNames(polypeptideType, protein);
             protein.setEntityReference(proteinReference);
 
-            ModificationFeature modificationFeature = create(ModificationFeature.class, "mod_" + term + "_" + pid);
-            model.add(modificationFeature);
+            if(term != null) {
+                ModificationFeature modificationFeature = create(ModificationFeature.class, "mod_" + term + "_" + pid);
+                model.add(modificationFeature);
 
-            modificationFeature.setModificationType(createSeqModVocab(model, term));
-            protein.addFeature(modificationFeature);
-            protein.getEntityReference().addEntityFeature(modificationFeature);
+                modificationFeature.setModificationType(createSeqModVocab(model, term));
+                protein.addFeature(modificationFeature);
+                protein.getEntityReference().addEntityFeature(modificationFeature);
+            }
         }
 
         return protein;
@@ -300,8 +335,11 @@ public class DrugBank2BioPAXConverter {
             named.addName(synonymType.getValue());
         }
 
-        for (BrandType brandType : drug.getBrands().getBrand()) {
-            named.addName(brandType.getValue());
+        BrandListType brands = drug.getBrands();
+        if(brands != null) {
+            for (BrandType brandType : brands.getBrand()) {
+                named.addName(brandType.getValue());
+            }
         }
     }
 
