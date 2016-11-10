@@ -1,5 +1,5 @@
 # drugbank-to-biopax
-Originated from https://bitbucket.org/armish/gsoc14 and will continue here.
+Originated from https://bitbucket.org/armish/gsoc14 and will continue here (ToDo).
 
 ## DrugBank to BioPAX Level3 data converter.
 Most of the drug-target interactions in DrugBank do not contain detailed process information—i.e. how the drug actually potentiates/inhibits the protein. 
@@ -35,11 +35,11 @@ but we currently do not capture this in the final model.
 The reason we are not doing this is partly due to incomplete knowledge (especially regarding to the intermediate chemicals) and partly due to the fact that [SMPDB](http://www.smpdb.ca/) knowledgebase already has these in BioPAX.
 
 ### Usage
-Check out the latest code and change your directory to [Goal3-DrugBank2BioPAX/drugbank2biopax](https://bitbucket.org/armish/gsoc14/src/default/Goal3-DrugBank2BioPAX/drugbank2biopax/?at=default):
+Check out (git clone) and change to:
 
-	$ cd Goal3-DrugBank2BioPAX/drugbank2biopax
+	$ cd drugbank-to-biopax
 
-and do a clean mvn install:
+build with Maven:
 
 	$ mvn clean install assembly:single
 
