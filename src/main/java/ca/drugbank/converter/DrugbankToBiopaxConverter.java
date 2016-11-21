@@ -1,14 +1,14 @@
-package com.google.gsoc14.drugbank2biopax.controller;
+package ca.drugbank.converter;
 
 import ca.drugbank.model.*;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.biopax.paxtools.model.BioPAXElement;
 import org.biopax.paxtools.model.BioPAXFactory;
 import org.biopax.paxtools.model.BioPAXLevel;
 import org.biopax.paxtools.model.Model;
 import org.biopax.paxtools.model.level3.*;
 import org.biopax.paxtools.model.level3.Process;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -17,39 +17,31 @@ import javax.xml.bind.Unmarshaller;
 import java.io.InputStream;
 import java.util.List;
 
-public class DrugBank2BioPAXConverter {
-    private static Log log = LogFactory.getLog(DrugBank2BioPAXConverter.class);
+public class DrugbankToBiopaxConverter {
+    private final static Logger log = LoggerFactory.getLogger(DrugbankToBiopaxConverter.class);
 
-    private BioPAXFactory bioPAXFactory = BioPAXLevel.L3.getDefaultFactory();
-
-    public BioPAXFactory getBioPAXFactory() {
-        return bioPAXFactory;
-    }
-
-    public void setBioPAXFactory(BioPAXFactory bioPAXFactory) {
-        this.bioPAXFactory = bioPAXFactory;
-    }
+    private final static BioPAXFactory bioPAXFactory = BioPAXLevel.L3.getDefaultFactory();
 
     protected <T extends BioPAXElement> T create(Class<T> aClass, String id) {
-        return getBioPAXFactory().create(aClass, completeId(id));
+        return bioPAXFactory.create(aClass, completeId(id));
     }
 
-    private String XMLBase = "http://www.drugbank.ca/#";
+    private String xmlBase = "http://www.drugbank.ca/#";
 
-    public String getXMLBase() {
-        return XMLBase;
+    public String getXmlBase() {
+        return xmlBase;
     }
 
-    public void setXMLBase(String XMLBase) {
-        this.XMLBase = XMLBase;
+    public void setXmlBase(String xmlBase) {
+        this.xmlBase = xmlBase;
     }
 
     private String completeId(String partialId) {
-        return getXMLBase() + partialId;
+        return getXmlBase() + partialId;
     }
 
     public Model convert(InputStream drugBankStream) throws JAXBException {
-        Model model = BioPAXLevel.L3.getDefaultFactory().createModel();
+        Model model = bioPAXFactory.createModel();
 
         JAXBContext jaxbContext = JAXBContext.newInstance("ca.drugbank.model");
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
@@ -69,7 +61,7 @@ public class DrugBank2BioPAXConverter {
 
         log.info("Conversion done. " + drugTargets + " drug targets converted into reactions.");
 
-        model.setXmlBase(getXMLBase());
+        model.setXmlBase(getXmlBase());
         return model;
     }
 
@@ -174,7 +166,6 @@ public class DrugBank2BioPAXConverter {
 
         return rxn;
     }
-
 
     private PhysicalEntity createSPEFromPolypeptide(Model model, PolypeptideType polypeptideType, String term) {
         String pid = polypeptideType.getId();

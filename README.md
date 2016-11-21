@@ -41,14 +41,13 @@ Check out (git clone) and change to:
 
 build with Maven:
 
-	$ mvn clean install assembly:single
+	$ mvn clean package
 
-This will create a single executable JAR file under the `target/` directory, with the following file name: `drugbank2biopax-{version}-single.jar`.
-You can also download this file under the downloads, e.g. [goal3_drugbank2biopax-1.0-SNAPSHOT-single.jar](https://bitbucket.org/armish/gsoc14/downloads/goal3_drugbank2biopax-1.0-SNAPSHOT-single.jar).
+This will create a single executable JAR file under the `target/` directory, with the following file name: `drugbank-to-biopax.jar`.
 Once you have the single JAR file, you can try to run without any command line options to see the help text:
 
-	$ java -jar goal3_drugbank2biopax-1.0-SNAPSHOT-single.jar 
-	usage: DrugBank2BioPAXConverterMain
+	$ java -jar drugbank-to-biopax.jar 
+	usage: DrugbankToBiopax
 	 -d,--drugs <arg>    structured DrugBank data (XML) [required]
  	 -o,--output <arg>   Output (BioPAX file) [required]
 
@@ -56,12 +55,10 @@ The only input file required for this conversion is the XML file that is distrib
 You can also download this file from the project page: [goal3_drugbank_20140730.xml.zip](https://bitbucket.org/armish/gsoc14/downloads/goal3_drugbank_20140730.xml.zip).
 Once downloaded and unzipped, you can then convert the model as follows:
 
-	$ java -jar goal3_drugbank2biopax-1.0-SNAPSHOT-single.jar -d goal3_drugbank_20140730.xml -o goal3_drugbank_20140730.owl
-
-The fully converted BioPAX model is available under Downloads: [goal3_drugbank_20140730.owl.gz](https://bitbucket.org/armish/gsoc14/downloads/goal3_drugbank_20140730.owl.gz).
+	$ java -jar drugbank-to-biopax.jar -d goal3_drugbank_20140730.xml -o goal3_drugbank_20140730.owl
 
 ### Validation results
-The full validation report is available under the Downloads: [goal3_drugbank_validationResults_20140730.zip](https://bitbucket.org/armish/gsoc14/downloads/goal3_drugbank_validationResults_20140730.zip).
+The validation report is available under the Downloads: [goal3_drugbank_validationResults_20140730.zip](https://bitbucket.org/armish/gsoc14/downloads/goal3_drugbank_validationResults_20140730.zip).
 The converted model does not have errors, but it produces warnings for few known cases.
 
 The first noticable problem has to do with the `active` and `inactive` terms of the modicification features.

@@ -1,13 +1,12 @@
-package com.google.gsoc14.drugbank2biopax;
+package ca.drugbank.converter;
 
-import com.google.gsoc14.drugbank2biopax.controller.DrugBank2BioPAXConverter;
 import org.apache.commons.cli.*;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.biopax.paxtools.io.SimpleIOHandler;
 import org.biopax.paxtools.model.Model;
 import org.biopax.paxtools.trove.TProvider;
 import org.biopax.paxtools.util.BPCollections;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBException;
 import java.io.FileInputStream;
@@ -15,17 +14,16 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-public class DrugBank2BioPAXConverterMain {
-    private static Log log = LogFactory.getLog(DrugBank2BioPAXConverterMain.class);
-    private static final String helpText = DrugBank2BioPAXConverterMain.class.getSimpleName();
+public class DrugbankToBiopax {
+    private static Logger log = LoggerFactory.getLogger(DrugbankToBiopax.class);
+    private static final String helpText = DrugbankToBiopax.class.getSimpleName();
 
     public static void main( String[] args ) throws JAXBException {
         final CommandLineParser clParser = new GnuParser();
         Options gnuOptions = new Options();
         gnuOptions
-                .addOption("d", "drugs", true, "structured DrugBank data (XML) [required]")
-                .addOption("o", "output", true, "Output (BioPAX file) [required]")
-        ;
+            .addOption("d", "drugs", true, "structured DrugBank data (XML) [required]")
+            .addOption("o", "output", true, "Output (BioPAX file) [required]");
 
         try {
             CommandLine commandLine = clParser.parse(gnuOptions, args);
@@ -44,15 +42,15 @@ public class DrugBank2BioPAXConverterMain {
             log.debug("Using DrugBank file: " + drugBankFile);
             FileInputStream drugBankStream = new FileInputStream(drugBankFile);
 
-            DrugBank2BioPAXConverter drugBank2BioPAXConverter = new DrugBank2BioPAXConverter();
-            Model model = drugBank2BioPAXConverter.convert(drugBankStream);
+            DrugbankToBiopaxConverter drugbankToBiopaxConverter = new DrugbankToBiopaxConverter();
+            Model model = drugbankToBiopaxConverter.convert(drugBankStream);
 
             String outputFile = commandLine.getOptionValue("o");
             log.debug("Saving the final BioPAX model to:" + outputFile);
             SimpleIOHandler simpleIOHandler = new SimpleIOHandler();
             FileOutputStream outputStream = new FileOutputStream(outputFile);
             simpleIOHandler.convertToOWL(model, outputStream);
-            outputStream.close();
+//            outputStream.close(); //not needed
             log.debug("All done.");
         } catch (ParseException e) {
             System.err.println(e.getMessage());
@@ -64,6 +62,5 @@ public class DrugBank2BioPAXConverterMain {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 }
