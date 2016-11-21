@@ -12,7 +12,7 @@
         DrugBank to BioPAX Level3 data converter.
     </description>
 
-    <url>https://biopax.github.io/PathwayCommons/${name}</url>
+    <url>https://biopax.github.io/PathwayCommons/${project.name}</url>
 
     <organization>
         <name>Pathway Commons</name>
@@ -35,20 +35,20 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:git://github.com/PathwayCommons/${name}.git</connection>
-        <developerConnection>scm:git:git@github.com:PathwayCommons/${name}.git</developerConnection>
+        <connection>scm:git:git://github.com/PathwayCommons/${project.name}.git</connection>
+        <developerConnection>scm:git:git@github.com:PathwayCommons/${project.name}.git</developerConnection>
         <url>https://github.com/PathwayCommons/${name}</url>
         <tag>HEAD</tag>
     </scm>
 
     <issueManagement>
         <system>GitHub Issues</system>
-        <url>https://github.com/PathwayCommons/${name}/issues</url>
+        <url>https://github.com/PathwayCommons/${project.name}/issues</url>
     </issueManagement>
 
     <ciManagement>
         <system>Travis CI</system>
-        <url>https://travis-ci.org/PathwayCommons/${name}</url>
+        <url>https://travis-ci.org/PathwayCommons/${project.name}</url>
     </ciManagement>
 
     <properties>
@@ -101,7 +101,7 @@
                                     <mainClass>ca.drugbank.converter.DrugbankToBiopax</mainClass>
                                 </transformer>
                             </transformers>
-                            <finalName>drugbank-to-biopax</finalName>
+                            <finalName>${project.name}</finalName>
                             <shadedArtifactAttached>true</shadedArtifactAttached>
                         </configuration>
                     </execution>
