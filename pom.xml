@@ -4,7 +4,7 @@
 
     <groupId>pathwaycommons</groupId>
     <artifactId>drugbank-to-biopax</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>2.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>drugbank-to-biopax</name>
 
@@ -68,6 +68,25 @@
                     <configuration>
                         <source>1.6</source>
                         <target>1.6</target>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>jaxb2-maven-plugin</artifactId>
+                    <version>1.6</version>
+                    <!--<executions>-->
+                        <!--<execution>-->
+                            <!--<phase>generate-sources</phase>-->
+                            <!--<goals>-->
+                                <!--<goal>xjc</goal>-->
+                            <!--</goals>-->
+                        <!--</execution>-->
+                    <!--</executions>-->
+                    <configuration>
+                        <clearOutputDir>false</clearOutputDir>
+                        <packageName>ca.drugbank.model</packageName>
+                        <failOnNoSchemas>true</failOnNoSchemas>
+                        <schemaDirectory>${basedir}/src/main/resources</schemaDirectory>
                     </configuration>
                 </plugin>
             </plugins>

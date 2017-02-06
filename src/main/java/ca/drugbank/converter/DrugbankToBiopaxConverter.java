@@ -37,7 +37,7 @@ public class DrugbankToBiopaxConverter {
     }
 
     private String completeId(String partialId) {
-        return getXmlBase() + partialId;
+        return (partialId.startsWith("http")) ? partialId : getXmlBase() + partialId;
     }
 
     public Model convert(InputStream drugBankStream) throws JAXBException {
@@ -222,7 +222,6 @@ public class DrugbankToBiopaxConverter {
             if(term != null) {
                 ModificationFeature modificationFeature = create(ModificationFeature.class, "mod_" + term + "_" + pid);
                 model.add(modificationFeature);
-
                 modificationFeature.setModificationType(createSeqModVocab(model, term));
                 protein.addFeature(modificationFeature);
                 protein.getEntityReference().addEntityFeature(modificationFeature);
@@ -242,6 +241,16 @@ public class DrugbankToBiopaxConverter {
         }
 
         return sequenceModificationVocabulary;
+    }
+
+    private PublicationXref createPublicationXref(Model model, String uri) {
+        PublicationXref px = (PublicationXref) model.getByID(completeId(uri));
+        //- completeId does nothing if the URI is URL, i.e., starts with 'http'...
+        if(px == null) {
+            px = create(PublicationXref.class, uri);
+            model.add(px);
+        }
+        return px;
     }
 
     private SmallMolecule convertDrugToSmallMolecule(Model model, DrugType drug) {
@@ -271,7 +280,36 @@ public class DrugbankToBiopaxConverter {
         }
 
         smallMolecule.addComment(drug.getDescription());
-        smallMolecule.addComment(drug.getGeneralReferences());
+//        smallMolecule.addComment(drug.getGeneralReferences()); //the xml schema's been recently changed; let's create xrefs!
+        if(drug.getGeneralReferences() != null) {
+            if (drug.getGeneralReferences().getArticles() != null) {
+                for (ArticleType article : drug.getGeneralReferences().getArticles().getArticle()) {
+                    String uri = "http://identifier.org/pubmed/" + article.getPubmedId();
+                    PublicationXref px = createPublicationXref(model, uri);
+                    px.addUrl(uri);
+                    reference.addXref(px);
+                    px.addComment(article.getCitation());
+                }
+            }
+            if (drug.getGeneralReferences().getLinks() != null) {
+                for (LinkType link : drug.getGeneralReferences().getLinks().getLink()) {
+                    String uri = link.getUrl();
+                    PublicationXref px = createPublicationXref(model, uri);
+                    reference.addXref(px);
+                    px.addUrl(uri);
+                    px.addSource(link.getTitle());
+                }
+            }
+            if (drug.getGeneralReferences().getTextbooks() != null) {
+                for (TextbookType tb : drug.getGeneralReferences().getTextbooks().getTextbook()) {
+                    String uri = "http://identifiers.org/isbn/" + tb.getIsbn();
+                    PublicationXref px = createPublicationXref(model, uri);
+                    reference.addXref(px);
+                    px.addUrl(uri);
+                    px.addComment(tb.getCitation());
+                }
+            }
+        }
 
         for (ExperimentalPropertyType experimentalPropertyType : drug.getExperimentalProperties().getProperty()) {
             String kind = experimentalPropertyType.getKind().value();
@@ -326,10 +364,10 @@ public class DrugbankToBiopaxConverter {
             named.addName(synonymType.getValue());
         }
 
-        BrandListType brands = drug.getBrands();
+        InternationalBrandListType brands = drug.getInternationalBrands();
         if(brands != null) {
-            for (BrandType brandType : brands.getBrand()) {
-                named.addName(brandType.getValue());
+            for (InternationalBrandType brandType : brands.getInternationalBrand()) {
+                named.addName(brandType.getName());
             }
         }
     }
