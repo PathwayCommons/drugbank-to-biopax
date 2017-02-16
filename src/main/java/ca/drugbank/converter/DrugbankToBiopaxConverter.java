@@ -36,8 +36,8 @@ public class DrugbankToBiopaxConverter {
         this.xmlBase = xmlBase;
     }
 
-    private String completeId(String partialId) {
-        return (partialId.startsWith("http")) ? partialId : getXmlBase() + partialId;
+    private String completeId(String id) {
+        return (id.startsWith("http://identifiers.org/")) ? id : getXmlBase() + id;
     }
 
     public Model convert(InputStream drugBankStream) throws JAXBException {
@@ -243,16 +243,6 @@ public class DrugbankToBiopaxConverter {
         return sequenceModificationVocabulary;
     }
 
-    private PublicationXref createPublicationXref(Model model, String uri) {
-        PublicationXref px = (PublicationXref) model.getByID(completeId(uri));
-        //- completeId does nothing if the URI is URL, i.e., starts with 'http'...
-        if(px == null) {
-            px = create(PublicationXref.class, uri);
-            model.add(px);
-        }
-        return px;
-    }
-
     private SmallMolecule convertDrugToSmallMolecule(Model model, DrugType drug) {
         String rdfId = createRDFId(drug);
         SmallMoleculeReference reference = create(SmallMoleculeReference.class, "ref_" + rdfId);
@@ -284,29 +274,39 @@ public class DrugbankToBiopaxConverter {
         if(drug.getGeneralReferences() != null) {
             if (drug.getGeneralReferences().getArticles() != null) {
                 for (ArticleType article : drug.getGeneralReferences().getArticles().getArticle()) {
-                    String uri = "http://identifier.org/pubmed/" + article.getPubmedId();
-                    PublicationXref px = createPublicationXref(model, uri);
-                    px.addUrl(uri);
+                    String uri = "http://identifiers.org/pubmed/" + article.getPubmedId();
+                    PublicationXref px = (PublicationXref) model.getByID(uri);
+                    if(px == null) {
+                        px = create(PublicationXref.class, uri);
+                        model.add(px);
+                        px.addUrl(px.getUri());
+                        px.addComment(article.getCitation());
+                    }
                     reference.addXref(px);
-                    px.addComment(article.getCitation());
                 }
             }
             if (drug.getGeneralReferences().getLinks() != null) {
                 for (LinkType link : drug.getGeneralReferences().getLinks().getLink()) {
-                    String uri = link.getUrl();
-                    PublicationXref px = createPublicationXref(model, uri);
+                    String url = link.getUrl();
+                    PublicationXref px = create(PublicationXref.class,"xlink_" + link.hashCode()*31+url.hashCode());
+                    model.add(px);
+                    px.addUrl(url);
+                    if(!link.getTitle().equalsIgnoreCase("link"))
+                        px.addSource(link.getTitle());
                     reference.addXref(px);
-                    px.addUrl(uri);
-                    px.addSource(link.getTitle());
                 }
             }
             if (drug.getGeneralReferences().getTextbooks() != null) {
                 for (TextbookType tb : drug.getGeneralReferences().getTextbooks().getTextbook()) {
                     String uri = "http://identifiers.org/isbn/" + tb.getIsbn();
-                    PublicationXref px = createPublicationXref(model, uri);
+                    PublicationXref px = (PublicationXref) model.getByID(uri);
+                    if(px == null) {
+                        px = create(PublicationXref.class, uri);
+                        model.add(px);
+                        px.addUrl(uri);
+                        px.addComment(tb.getCitation());
+                    }
                     reference.addXref(px);
-                    px.addUrl(uri);
-                    px.addComment(tb.getCitation());
                 }
             }
         }
