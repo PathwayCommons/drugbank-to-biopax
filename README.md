@@ -52,13 +52,12 @@ Once you have the single JAR file, you can try to run without any command line o
  	 -o,--output <arg>   Output (BioPAX file) [required]
 
 The only input file required for this conversion is the XML file that is distributed by DrugBank.
-You can also download this file from the project page: [goal3_drugbank_20140730.xml.zip](https://bitbucket.org/armish/gsoc14/downloads/goal3_drugbank_20140730.xml.zip).
-Once downloaded and unzipped, you can then convert the model as follows:
+Once downloaded, you can then convert the model as follows:
 
-	$ java -jar drugbank-to-biopax.jar -d goal3_drugbank_20140730.xml -o goal3_drugbank_20140730.owl
+	$ java -jar drugbank-to-biopax.jar -d drugbank.xml -o drugbank.owl
 
-### Validation results
-The validation report is available under the Downloads: [goal3_drugbank_validationResults_20140730.zip](https://bitbucket.org/armish/gsoc14/downloads/goal3_drugbank_validationResults_20140730.zip).
+### Validation
+The (OLD) validation report is available under the Downloads: [goal3_drugbank_validationResults_20140730.zip](https://bitbucket.org/armish/gsoc14/downloads/goal3_drugbank_validationResults_20140730.zip).
 The converted model does not have errors, but it produces warnings for few known cases.
 
 The first noticable problem has to do with the `active` and `inactive` terms of the modicification features.

@@ -54,7 +54,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <paxtools.version>5.0.0-beta1</paxtools.version>
+        <paxtools.version>5.0.1</paxtools.version>
         <slf4j.version>1.7.7</slf4j.version>
         <github.global.server>github</github.global.server>
     </properties>
