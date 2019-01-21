@@ -4,7 +4,7 @@
 
     <groupId>pathwaycommons</groupId>
     <artifactId>drugbank-to-biopax</artifactId>
-    <version>2.0.0-SNAPSHOT</version>
+    <version>2.1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>drugbank-to-biopax</name>
 
@@ -54,7 +54,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <paxtools.version>5.0.1</paxtools.version>
+        <paxtools.version>5.1.0</paxtools.version>
         <slf4j.version>1.7.7</slf4j.version>
         <github.global.server>github</github.global.server>
     </properties>
@@ -66,28 +66,27 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.5.1</version>
                     <configuration>
-                        <source>1.6</source>
-                        <target>1.6</target>
+                        <source>1.8</source>
+                        <target>1.8</target>
                     </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>jaxb2-maven-plugin</artifactId>
                     <version>1.6</version>
-                    <!--<executions>-->
-                        <!--<execution>-->
-                            <!--<phase>generate-sources</phase>-->
-                            <!--<goals>-->
-                                <!--<goal>xjc</goal>-->
-                            <!--</goals>-->
-                        <!--</execution>-->
-                    <!--</executions>-->
                     <configuration>
                         <clearOutputDir>false</clearOutputDir>
                         <packageName>ca.drugbank.model</packageName>
                         <failOnNoSchemas>true</failOnNoSchemas>
                         <schemaDirectory>${basedir}/src/main/resources</schemaDirectory>
                     </configuration>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.sun.activation</groupId>
+                            <artifactId>javax.activation</artifactId>
+                            <version>1.2.0</version>
+                        </dependency>
+                    </dependencies>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -104,6 +103,18 @@
             </extension>
         </extensions>
         <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>jaxb2-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>xjc</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -138,7 +149,7 @@
                     <plugin>
                         <groupId>org.sonatype.plugins</groupId>
                         <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>1.6.7</version>
+                        <version>1.6.8</version>
                         <extensions>true</extensions>
                         <configuration>
                             <serverId>ossrh</serverId>
@@ -158,6 +169,7 @@
                         </executions>
                     </plugin>
                     <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
                         <version>2.10.4</version>
                         <executions>

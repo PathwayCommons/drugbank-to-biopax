@@ -27,7 +27,7 @@
     <xs:complexType name="drug-type">
         <xs:sequence>
             <xs:element maxOccurs="unbounded" minOccurs="1" name="drugbank-id"
-                type="drugbank-drug-id-type"> </xs:element>
+                type="drugbank-drug-salt-id-type"> </xs:element>
             <xs:element name="name" type="xs:string"/>
             <xs:element name="description" type="xs:string"/>
             <xs:element name="cas-number" type="xs:string"/>
@@ -70,8 +70,7 @@
             <xs:element name="food-interactions" type="food-interaction-list-type"/>
             <xs:element name="drug-interactions" type="drug-interaction-list-type"/>
             <xs:element minOccurs="0" name="sequences" type="sequence-list-type"/>
-            <xs:element minOccurs="0" name="calculated-properties"
-                type="calculated-property-list-type"/>
+            <xs:element minOccurs="0" name="calculated-properties" type="calculated-property-list-type"/>
             <xs:element name="experimental-properties" type="experimental-property-list-type"/>
             <xs:element name="external-identifiers" type="external-identifier-list-type"/>
             <xs:element name="external-links" type="external-link-list-type"/>
@@ -109,7 +108,7 @@
     </xs:complexType>
     <xs:simpleType name="group-type">
         <xs:annotation>
-            <xs:documentation>Drugs are grouped into a category like approved, experimental, illict.</xs:documentation>
+            <xs:documentation>Drugs are grouped into a category like approved, experimental, illicit.</xs:documentation>
         </xs:annotation>
         <xs:restriction base="xs:string">
             <xs:enumeration value="approved"/>
@@ -157,7 +156,7 @@
     </xs:complexType>
     <xs:complexType name="salt-type">
         <xs:sequence>
-            <xs:element name="drugbank-id" type="drugbank-salt-id-type" maxOccurs="unbounded"
+            <xs:element name="drugbank-id" type="drugbank-drug-salt-id-type" maxOccurs="unbounded"
                 minOccurs="0"/>
             <xs:element name="name" type="xs:string"/>
             <xs:element name="unii" type="xs:string"/>
@@ -167,11 +166,12 @@
             <xs:element name="monoisotopic-mass" type="xs:float" minOccurs="0"/>
         </xs:sequence>
     </xs:complexType>
-    <xs:simpleType name="drugbank-drug-id-value">
+    <xs:simpleType name="drugbank-drug-salt-id-value">
         <xs:restriction base="xs:string">
             <xs:minLength value="1"/>
             <xs:whiteSpace value="collapse"/>
             <xs:pattern value="DB[0-9]{5}"/>
+            <xs:pattern value="DBSALT[0-9]{6}"/>
             <xs:pattern value="APRD[0-9]{5}"/>
             <xs:pattern value="BIOD[0-9]{5}"/>
             <xs:pattern value="BTD[0-9]{5}"/>
@@ -179,33 +179,16 @@
             <xs:pattern value="NUTR[0-9]{5}"/>
         </xs:restriction>
     </xs:simpleType>
-    <xs:complexType name="drugbank-drug-id-type">
+    <xs:complexType name="drugbank-drug-salt-id-type">
         <xs:annotation>
-            <xs:documentation>The DrugBank ID is used to uniquely identify a drug entry. There is a primary ID and several secondary IDs that come from older ID formats or merged entries.</xs:documentation>
+            <xs:documentation>The DrugBank ID is used to uniquely identify a drug or salt entry. There is a primary ID and several secondary IDs that come from older ID formats or merged entries.</xs:documentation>
         </xs:annotation>
         <xs:simpleContent>
-            <xs:extension base="drugbank-drug-id-value">
+            <xs:extension base="drugbank-drug-salt-id-value">
                 <xs:attribute default="false" name="primary" type="xs:boolean"/>
             </xs:extension>
         </xs:simpleContent>
     </xs:complexType>
-    <xs:complexType name="drugbank-salt-id-type">
-        <xs:annotation>
-            <xs:documentation>The salt DrugBank ID uniquely identifies a salt entry. Multiple IDs indicate a merged entry.</xs:documentation>
-        </xs:annotation>
-        <xs:simpleContent>
-            <xs:extension base="drugbank-salt-id-value">
-                <xs:attribute default="false" name="primary" type="xs:boolean"/>
-            </xs:extension>
-        </xs:simpleContent>
-    </xs:complexType>
-    <xs:simpleType name="drugbank-salt-id-value">
-        <xs:restriction base="xs:string">
-            <xs:minLength value="1"/>
-            <xs:whiteSpace value="collapse"/>
-            <xs:pattern value="DBSALT[0-9]{6}"/>
-        </xs:restriction>
-    </xs:simpleType>
     <xs:complexType name="drugbank-metabolite-id-type">
         <xs:annotation>
             <xs:documentation>The metabolite DrugBank ID uniquely identifies a metabolite entry. Multiple IDs indicate a merged entry.</xs:documentation>
@@ -225,18 +208,28 @@
     </xs:simpleType>
     <xs:complexType name="article-type">
         <xs:sequence>
+            <xs:element name="ref-id" type="xs:string" maxOccurs="1" minOccurs="0"/>
             <xs:element name="pubmed-id" type="xs:string"/>
             <xs:element name="citation" type="xs:string"/>
         </xs:sequence>
     </xs:complexType>
     <xs:complexType name="textbook-type">
         <xs:sequence>
+            <xs:element name="ref-id" type="xs:string" maxOccurs="1" minOccurs="0"/>
             <xs:element name="isbn" type="xs:string"/>
             <xs:element name="citation" type="xs:string"/>
         </xs:sequence>
     </xs:complexType>
     <xs:complexType name="link-type">
         <xs:sequence>
+            <xs:element name="ref-id" type="xs:string" maxOccurs="1" minOccurs="0"/>
+            <xs:element name="title" type="xs:string"/>
+            <xs:element name="url" type="xs:anyURI"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="attachment-type">
+        <xs:sequence>
+            <xs:element name="ref-id" type="xs:string" maxOccurs="1" minOccurs="0"/>
             <xs:element name="title" type="xs:string"/>
             <xs:element name="url" type="xs:anyURI"/>
         </xs:sequence>
@@ -256,6 +249,11 @@
             <xs:element maxOccurs="unbounded" minOccurs="0" name="link" type="link-type"/>
         </xs:sequence>
     </xs:complexType>
+    <xs:complexType name="attachment-list-type">
+        <xs:sequence>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="attachment" type="attachment-type"/>
+        </xs:sequence>
+    </xs:complexType>
     <xs:complexType name="reference-list-type">
         <xs:sequence>
             <xs:element maxOccurs="1" minOccurs="1" name="articles" type="article-list-type">
@@ -265,6 +263,7 @@
             </xs:element>
             <xs:element maxOccurs="1" minOccurs="1" name="textbooks" type="textbook-list-type"/>
             <xs:element maxOccurs="1" minOccurs="1" name="links" type="link-list-type"/>
+            <xs:element maxOccurs="1" minOccurs="1" name="attachments" type="attachment-list-type"/>
         </xs:sequence>
     </xs:complexType>
     <xs:complexType name="international-brand-list-type">
@@ -293,6 +292,16 @@
             <xs:element name="dpd-id" type="xs:string" nillable="true">
                 <xs:annotation>
                     <xs:documentation>DPD ID from the Canadian Drug Product Database. Only present for drugs that are marketed in Canada.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="ema-product-code" type="xs:string" nillable="true">
+                <xs:annotation>
+                    <xs:documentation>EMA product code from the European Medicines Agency Database. Only present for products that are authorised by central procedure for marketing in the European Union.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="ema-ma-number" type="xs:string" nillable="true">
+                <xs:annotation>
+                    <xs:documentation>EMA marketing authorisation number from the European Medicines Agency Database. Only present for products that are authorised by central procedure for marketing in the European Union.</xs:documentation>
                 </xs:annotation>
             </xs:element>
             <xs:element name="started-marketing-on" type="xs:string"/>
@@ -452,7 +461,7 @@
     </xs:complexType>
     <xs:complexType name="drug-interaction-type">
         <xs:sequence>
-            <xs:element name="drugbank-id" type="drugbank-drug-id-type"/>
+            <xs:element name="drugbank-id" type="drugbank-drug-salt-id-type"/>
             <xs:element name="name" type="xs:string"/>
             <xs:element name="description" type="xs:string"/>
         </xs:sequence>
@@ -516,6 +525,7 @@
             <xs:enumeration value="Rule of Five"/>
             <xs:enumeration value="Ghose Filter"/>
             <xs:enumeration value="MDDR-Like Rule"/>
+            <xs:enumeration value="Veber's Rule"/>
         </xs:restriction>
     </xs:simpleType>
     <xs:complexType name="experimental-property-list-type">
@@ -544,6 +554,7 @@
             <xs:enumeration value="pKa"/>
             <xs:enumeration value="Molecular Weight"/>
             <xs:enumeration value="Molecular Formula"/>
+            <xs:enumeration value="Radioactivity"/>
         </xs:restriction>
     </xs:simpleType>
     <xs:complexType name="external-identifier-list-type">
@@ -620,7 +631,7 @@
     </xs:complexType>
     <xs:complexType name="pathway-drug-type">
         <xs:sequence>
-            <xs:element name="drugbank-id" type="drugbank-drug-id-type"/>
+            <xs:element name="drugbank-id" type="drugbank-drug-salt-id-type"/>
             <xs:element name="name" type="xs:string"/>
         </xs:sequence>
     </xs:complexType>
@@ -874,6 +885,7 @@
         <xs:restriction base="xs:string">
             <xs:enumeration value="US"/>
             <xs:enumeration value="Canada"/>
+            <xs:enumeration value="EU"/>
         </xs:restriction>
     </xs:simpleType>
     <xs:simpleType name="product-source-type">
@@ -883,6 +895,7 @@
         <xs:restriction base="xs:string">
             <xs:enumeration value="FDA NDC"/>
             <xs:enumeration value="DPD"/>
+            <xs:enumeration value="EMA"/>
         </xs:restriction>
     </xs:simpleType>
 </xs:schema>

@@ -312,9 +312,11 @@ public class DrugbankToBiopaxConverter {
         }
 
         for (ExperimentalPropertyType experimentalPropertyType : drug.getExperimentalProperties().getProperty()) {
+            if(experimentalPropertyType.getKind() == null)
+                continue;
             String kind = experimentalPropertyType.getKind().value();
             String value = experimentalPropertyType.getValue();
-            if(kind.equalsIgnoreCase("Molecular Weight")) {
+            if("Molecular Weight".equalsIgnoreCase(kind)) {
                 try {
                     reference.setMolecularWeight(Float.parseFloat(value));
                 } catch(NumberFormatException e) {
@@ -352,7 +354,6 @@ public class DrugbankToBiopaxConverter {
         }
     }
 
-
     private void setDrugNames(DrugType drug, Named named) {
         String name = drug.getName();
 
@@ -378,7 +379,7 @@ public class DrugbankToBiopaxConverter {
     }
 
     private String getPrimaryDrugId(DrugType drug) {
-        for (DrugbankDrugIdType drugbankDrugIdType : drug.getDrugbankId()) {
+        for (DrugbankDrugSaltIdType drugbankDrugIdType : drug.getDrugbankId()) {
             if(drugbankDrugIdType.isPrimary()) {
                 return drugbankDrugIdType.getValue();
             }
