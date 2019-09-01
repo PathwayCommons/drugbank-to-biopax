@@ -1,6 +1,7 @@
 package ca.drugbank.converter;
 
 import ca.drugbank.model.*;
+import org.biopax.paxtools.controller.ModelUtils;
 import org.biopax.paxtools.model.BioPAXElement;
 import org.biopax.paxtools.model.BioPAXFactory;
 import org.biopax.paxtools.model.BioPAXLevel;
@@ -16,14 +17,32 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.InputStream;
 import java.util.List;
+import java.util.UUID;
 
 public class DrugbankToBiopaxConverter {
     private final static Logger log = LoggerFactory.getLogger(DrugbankToBiopaxConverter.class);
 
     private final static BioPAXFactory bioPAXFactory = BioPAXLevel.L3.getDefaultFactory();
 
-    protected <T extends BioPAXElement> T create(Class<T> aClass, String id) {
+    private <T extends BioPAXElement> T create(Class<T> aClass, String id) {
         return bioPAXFactory.create(aClass, completeId(id));
+    }
+
+    private <T extends Xref> T findOrCreateXref(Model model, Class<T> xrefType, String id, String db)
+    {
+        //some quick-fix, normalization
+        if("uniprot accession".equalsIgnoreCase(db))
+            db = "UniProt"; //it's UniProt ID (accession is like Q12345, P43210)!
+
+        String localUri = xrefType.getSimpleName() + "_" + ModelUtils.md5hex(db + id);
+        T x = (T) model.getByID(completeId(localUri));
+        if(x == null) {
+            x = create(xrefType, localUri);
+            x.setDb(db);
+            x.setId(id);
+            model.add(x);
+        }
+        return x;
     }
 
     private String xmlBase = "http://www.drugbank.ca/#";
@@ -66,7 +85,7 @@ public class DrugbankToBiopaxConverter {
     }
 
     private Control convertTargetToReaction(Model model, SmallMolecule smallMolecule, TargetType targetType) {
-        Control control = create(Control.class, "control_" + targetType.hashCode());
+        Control control = create(Control.class, "control_" + UUID.randomUUID());
         model.add(control);
         control.addController(smallMolecule);
         for (PolypeptideType polypeptideType : targetType.getPolypeptide()) {
@@ -117,16 +136,16 @@ public class DrugbankToBiopaxConverter {
 
     private String constructName(SmallMolecule smallMolecule, TargetType targetType) {
         if(targetType.getKnownAction().value().equalsIgnoreCase("yes")) {
-            String actionStr = "";
+            StringBuilder sb = new StringBuilder();
             for (String action : targetType.getActions().getAction()) {
-                actionStr += action + ", ";
+                sb.append(action).append(", ");
             }
-
-            if(actionStr.isEmpty()) {
+            String act = sb.toString();
+            if(act.isEmpty()) {
                 return null;
             } else {
-                actionStr = actionStr.substring(0, actionStr.length() - 2);
-                return smallMolecule.getDisplayName() + " acts as " + actionStr;
+                act = act.substring(0, act.length() - 2);
+                return smallMolecule.getDisplayName() + " acts as " + act;
             }
         }
 
@@ -137,16 +156,13 @@ public class DrugbankToBiopaxConverter {
         String pid = polypeptideType.getId();
         String rxnId = "rxn_" + pid;
         BiochemicalReaction rxn = (BiochemicalReaction) model.getByID(completeId(rxnId));
-        if(rxn != null) {
-            return rxn;
+        if(rxn == null) {
+            rxn = create(BiochemicalReaction.class, rxnId);
+            model.add(rxn);
+            rxn.addLeft(createSPEFromPolypeptide(model, polypeptideType, "active"));
+            rxn.addRight(createSPEFromPolypeptide(model, polypeptideType, "inactive"));
+            rxn.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
         }
-
-        rxn = create(BiochemicalReaction.class, rxnId);
-        model.add(rxn);
-        rxn.addLeft(createSPEFromPolypeptide(model, polypeptideType, "active"));
-        rxn.addRight(createSPEFromPolypeptide(model, polypeptideType, "inactive"));
-        rxn.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
-
         return rxn;
     }
 
@@ -154,16 +170,13 @@ public class DrugbankToBiopaxConverter {
         String pid = polypeptideType.getId();
         String rxnId = "rxn_ace_" + pid;
         BiochemicalReaction rxn = (BiochemicalReaction) model.getByID(completeId(rxnId));
-        if(rxn != null) {
-            return rxn;
+        if(rxn == null) {
+            rxn = create(BiochemicalReaction.class, rxnId);
+            model.add(rxn);
+            rxn.addLeft(createSPEFromPolypeptide(model, polypeptideType, null));
+            rxn.addRight(createSPEFromPolypeptide(model, polypeptideType, "acetylated"));
+            rxn.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
         }
-
-        rxn = create(BiochemicalReaction.class, rxnId);
-        model.add(rxn);
-        rxn.addLeft(createSPEFromPolypeptide(model, polypeptideType, null));
-        rxn.addRight(createSPEFromPolypeptide(model, polypeptideType, "acetylated"));
-        rxn.setConversionDirection(ConversionDirectionType.LEFT_TO_RIGHT);
-
         return rxn;
     }
 
@@ -177,29 +190,23 @@ public class DrugbankToBiopaxConverter {
             model.add(proteinReference);
             setPolypeptideNames(polypeptideType, proteinReference);
 
-            UnificationXref unificationXref = create(UnificationXref.class, "uxref_" + pid);
-            model.add(unificationXref);
             String source = polypeptideType.getSource();
             if(source == null || source.isEmpty()) {
-                source = "UniProt KnowledgeBase";
+                source = "UniProtKB";
             }
-            unificationXref.setDb(source);
-            unificationXref.setId(pid);
+            UnificationXref unificationXref = findOrCreateXref(model, UnificationXref.class, pid, source);
             proteinReference.addXref(unificationXref);
 
             for (PolypeptideExternalIdentifierType externalIdentifierType : polypeptideType.getExternalIdentifiers().getExternalIdentifier()) {
                 String exid = externalIdentifierType.getIdentifier();
                 String exdb = externalIdentifierType.getResource().value();
-                RelationshipXref relationshipXref = create(RelationshipXref.class, "rxref_" + externalIdentifierType.hashCode());
-                model.add(relationshipXref);
-                relationshipXref.setDb(exdb);
-                relationshipXref.setId(exid);
+                RelationshipXref relationshipXref = findOrCreateXref(model, RelationshipXref.class, exid, exdb);
                 proteinReference.addXref(relationshipXref);
             }
 
             String organism = polypeptideType.getOrganism().getValue();
             if(organism != null && !organism.isEmpty()) {
-                String bioSrcId = "biosrc_" + organism.hashCode();
+                String bioSrcId = "biosrc_" + ModelUtils.md5hex(organism);
                 BioSource bioSource = (BioSource) model.getByID(completeId(bioSrcId));
                 if (bioSource == null) {
                     bioSource = create(BioSource.class, bioSrcId);
@@ -255,22 +262,16 @@ public class DrugbankToBiopaxConverter {
         setDrugNames(drug, reference);
 
         String primaryDrugId = getPrimaryDrugId(drug);
-        UnificationXref unificationXref = create(UnificationXref.class, "uxref_" + primaryDrugId);
-        model.add(unificationXref);
-        unificationXref.setDb("DrugBank");
-        unificationXref.setId(primaryDrugId);
+        UnificationXref unificationXref = findOrCreateXref(model, UnificationXref.class, primaryDrugId, "DrugBank");
         reference.addXref(unificationXref);
 
+        // find/generate relationship xrefs
         for (ExternalIdentifierType externalIdentifierType : drug.getExternalIdentifiers().getExternalIdentifier()) {
-            RelationshipXref relationshipXref = create(RelationshipXref.class, "rxref_" + externalIdentifierType.hashCode());
-            model.add(relationshipXref);
-            relationshipXref.setId(externalIdentifierType.getIdentifier());
-            relationshipXref.setDb(externalIdentifierType.getResource().value());
-            reference.addXref(relationshipXref);
+            reference.addXref(findOrCreateXref(model, RelationshipXref.class,
+              externalIdentifierType.getIdentifier(), externalIdentifierType.getResource().value()));
         }
 
         smallMolecule.addComment(drug.getDescription());
-//        smallMolecule.addComment(drug.getGeneralReferences()); //the xml schema's been recently changed; let's create xrefs!
         if(drug.getGeneralReferences() != null) {
             if (drug.getGeneralReferences().getArticles() != null) {
                 for (ArticleType article : drug.getGeneralReferences().getArticles().getArticle()) {
@@ -279,6 +280,8 @@ public class DrugbankToBiopaxConverter {
                     if(px == null) {
                         px = create(PublicationXref.class, uri);
                         model.add(px);
+                        px.setId(article.getPubmedId());
+                        px.setDb("pubmed");
                         px.addUrl(px.getUri());
                         px.addComment(article.getCitation());
                     }
@@ -287,12 +290,16 @@ public class DrugbankToBiopaxConverter {
             }
             if (drug.getGeneralReferences().getLinks() != null) {
                 for (LinkType link : drug.getGeneralReferences().getLinks().getLink()) {
-                    String url = link.getUrl();
-                    PublicationXref px = create(PublicationXref.class,"xlink_" + link.hashCode()*31+url.hashCode());
-                    model.add(px);
-                    px.addUrl(url);
-                    if(!link.getTitle().equalsIgnoreCase("link"))
-                        px.addSource(link.getTitle());
+                    String uri = "xlink_" + ModelUtils.md5hex(link.getUrl());
+                    PublicationXref px = (PublicationXref) model.getByID(completeId(uri));
+                    if(px == null) {
+                        px = create(PublicationXref.class, uri);
+                        px.addUrl(link.getUrl());
+                        if(!link.getTitle().equalsIgnoreCase("link")) {
+                            px.addSource(link.getTitle());
+                        }
+                        model.add(px);
+                    }
                     reference.addXref(px);
                 }
             }
@@ -304,6 +311,8 @@ public class DrugbankToBiopaxConverter {
                         px = create(PublicationXref.class, uri);
                         model.add(px);
                         px.addUrl(uri);
+                        px.setId(tb.getIsbn());
+                        px.setDb("isbn");
                         px.addComment(tb.getCitation());
                     }
                     reference.addXref(px);
@@ -325,10 +334,15 @@ public class DrugbankToBiopaxConverter {
             } else if(kind.equalsIgnoreCase("Molecular Formula")) {
                 reference.setChemicalFormula(value);
             } else if(kind.equalsIgnoreCase("SMILES")) {
-                ChemicalStructure chemicalStructure = create(ChemicalStructure.class, "smiles_" + experimentalPropertyType.hashCode());
-                model.add(chemicalStructure);
-                chemicalStructure.setStructureFormat(StructureFormatType.SMILES);
-                chemicalStructure.setStructureData(value);
+                String localId = "smiles_" + ModelUtils.md5hex(value);
+                ChemicalStructure chemicalStructure = (ChemicalStructure) model.getByID(completeId(localId));
+                if(chemicalStructure==null) {
+                    chemicalStructure = create(ChemicalStructure.class, localId);
+                    model.add(chemicalStructure);
+                    chemicalStructure.setStructureFormat(StructureFormatType.SMILES);
+                    chemicalStructure.setStructureData(value);
+                }
+                reference.setStructure(chemicalStructure);
             }
         }
 
@@ -375,7 +389,7 @@ public class DrugbankToBiopaxConverter {
 
     private String createRDFId(DrugType drug) {
         String primaryDrugId = getPrimaryDrugId(drug);
-        return primaryDrugId != null ? primaryDrugId : drug.hashCode() + "";
+        return primaryDrugId != null ? primaryDrugId : UUID.randomUUID() + "";
     }
 
     private String getPrimaryDrugId(DrugType drug) {
