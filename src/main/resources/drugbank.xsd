@@ -326,6 +326,7 @@
         <xs:sequence>
             <xs:element name="name" type="xs:string"/>
             <xs:element name="ingredients" type="xs:string"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="supplemental-ingredients" type="xs:string"/>
         </xs:sequence>
     </xs:complexType>
     <xs:complexType name="packager-list-type">
@@ -589,6 +590,8 @@
             <xs:enumeration value="PDB"/>
             <xs:enumeration value="IUPHAR"/>
             <xs:enumeration value="Guide to Pharmacology"/>
+            <xs:enumeration value="ZINC"/>
+            <xs:enumeration value="RxCUI"/>
         </xs:restriction>
     </xs:simpleType>
     <xs:complexType name="external-link-list-type">
