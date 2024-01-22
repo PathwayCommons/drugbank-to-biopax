@@ -1,4 +1,7 @@
 # drugbank-to-biopax
+
+[![Build with Maven](https://github.com/PathwayCommons/drugbank-to-biopax/actions/workflows/build.yml/badge.svg)](https://github.com/PathwayCommons/drugbank-to-biopax/actions/workflows/build.yml)
+
 Originated from https://bitbucket.org/armish/gsoc14 and will continue here (ToDo).
 
 ## DrugBank to BioPAX Level3 data converter.
@@ -20,7 +23,7 @@ hence we parse only this information and convert it to BioPAX `BiochemicalReacti
 These binary relationships do not contain structured mechanism information,
 e.g. how a drug inhibits or potentiates a target.
 We have decided to encode this information in BioPAX by using `SequenceModificationFeature`s with `active` and `inactive` terms and associating these features with target proteins.
-Therefore the final BioPAX model contains `BiochemicalReaction`s where drugs regulate the reaction and the participant protein either gets activated.
+Therefore, the final BioPAX model contains `BiochemicalReaction`s where drugs regulate the reaction and the participant protein either gets activated.
 The type of regulation is based on the controlled vocabulary adopted by DrugBank.
 If the interaction type is one of the following,
 then we represent that as a negative regulation, meaning that drug inhibits the inactivation of the protein (double negative): substrate, agonist, inducer, potentiator, stimulator, cofactor or ligand.
@@ -32,7 +35,7 @@ The following screenshot, for example, shows positive (green edges) and negative
 
 For some drugs, the XML file also contains information about how the drug is metabolized by various enzymes,
 but we currently do not capture this in the final model.
-The reason we are not doing this is partly due to incomplete knowledge (especially regarding to the intermediate chemicals) and partly due to the fact that [SMPDB](http://www.smpdb.ca/) knowledgebase already has these in BioPAX.
+The reason we are not doing this is partly due to incomplete knowledge (especially regarding the intermediate chemicals) and partly due to the fact that [SMPDB](http://www.smpdb.ca/) knowledgebase already has these in BioPAX.
 
 ### Usage
 Check out (git clone) and change to:
@@ -60,7 +63,7 @@ Once downloaded, you can then convert the model as follows:
 The (OLD) validation report is available under the Downloads: [goal3_drugbank_validationResults_20140730.zip](https://bitbucket.org/armish/gsoc14/downloads/goal3_drugbank_validationResults_20140730.zip).
 The converted model does not have errors, but it produces warnings for few known cases.
 
-The first noticable problem has to do with the `active` and `inactive` terms of the modicification features.
+The first noticeable problem has to do with the `active` and `inactive` terms of the modification features.
 These terms are not registered in Miriam, but they have been used in BioPAX models, especially in NCI-PID.
 Ideally instead of these terms, we encode the activation reaction with all mechanistic details;
 but since this information is not available, we have to ignore these warnings for the time being.

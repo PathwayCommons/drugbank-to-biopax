@@ -3,8 +3,7 @@ package ca.drugbank.converter;
 import org.apache.commons.cli.*;
 import org.biopax.paxtools.io.SimpleIOHandler;
 import org.biopax.paxtools.model.Model;
-import org.biopax.paxtools.trove.TProvider;
-import org.biopax.paxtools.util.BPCollections;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +11,6 @@ import javax.xml.bind.JAXBException;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 
 public class DrugbankToBiopax {
     private static Logger log = LoggerFactory.getLogger(DrugbankToBiopax.class);
@@ -35,9 +33,6 @@ public class DrugbankToBiopax {
                 System.exit(-1);
             }
 
-            // Memory efficiency fix for huge BioPAX models
-            BPCollections.I.setProvider(new TProvider());
-
             String drugBankFile = commandLine.getOptionValue("d");
             log.debug("Using DrugBank file: " + drugBankFile);
             FileInputStream drugBankStream = new FileInputStream(drugBankFile);
@@ -50,7 +45,6 @@ public class DrugbankToBiopax {
             SimpleIOHandler simpleIOHandler = new SimpleIOHandler();
             FileOutputStream outputStream = new FileOutputStream(outputFile);
             simpleIOHandler.convertToOWL(model, outputStream);
-//            outputStream.close(); //not needed
             log.debug("All done.");
         } catch (ParseException e) {
             System.err.println(e.getMessage());
@@ -58,8 +52,6 @@ public class DrugbankToBiopax {
             helpFormatter.printHelp(helpText, gnuOptions);
             System.exit(-1);
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
             e.printStackTrace();
         }
     }

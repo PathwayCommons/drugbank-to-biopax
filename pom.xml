@@ -4,7 +4,7 @@
 
     <groupId>pathwaycommons</groupId>
     <artifactId>drugbank-to-biopax</artifactId>
-    <version>2.1.1-SNAPSHOT</version>
+    <version>2.1.2-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>drugbank-to-biopax</name>
 
@@ -47,15 +47,15 @@
     </issueManagement>
 
     <ciManagement>
-        <system>Travis CI</system>
-        <url>https://travis-ci.org/PathwayCommons/${project.name}</url>
+        <system>GitHub</system>
+        <url>https://github.com/PathwayCommons/${project.name}/actions/workflows/build.yml</url>
     </ciManagement>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <paxtools.version>5.1.0</paxtools.version>
-        <slf4j.version>1.7.7</slf4j.version>
+        <paxtools.version>5.3.0</paxtools.version>
+        <slf4j.version>1.7.36</slf4j.version>
         <github.global.server>github</github.global.server>
     </properties>
 
@@ -66,8 +66,8 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.5.1</version>
                     <configuration>
-                        <source>1.8</source>
-                        <target>1.8</target>
+                        <source>17</source>
+                        <target>17</target>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -94,12 +94,12 @@
             <extension>
                 <groupId>org.apache.maven.wagon</groupId>
                 <artifactId>wagon-ssh</artifactId>
-                <version>2.8</version>
+                <version>2.10</version>
             </extension>
             <extension>
                 <groupId>org.apache.maven.wagon</groupId>
                 <artifactId>wagon-scm</artifactId>
-                <version>2.8</version>
+                <version>2.10</version>
             </extension>
         </extensions>
         <plugins>
@@ -118,7 +118,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>2.4</version>
+                <version>3.5.1</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -149,7 +149,7 @@
                     <plugin>
                         <groupId>org.sonatype.plugins</groupId>
                         <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>1.6.8</version>
+                        <version>1.6.13</version>
                         <extensions>true</extensions>
                         <configuration>
                             <serverId>ossrh</serverId>
@@ -158,7 +158,7 @@
                     </plugin>
                     <plugin>
                         <artifactId>maven-source-plugin</artifactId>
-                        <version>3.0.1</version>
+                        <version>3.2.1</version>
                         <executions>
                             <execution>
                                 <id>attach-sources</id>
@@ -171,7 +171,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>2.10.4</version>
+                        <version>3.5.0</version>
                         <executions>
                             <execution>
                                 <id>attach-javadocs</id>
@@ -228,11 +228,6 @@
             <version>${paxtools.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.biopax.paxtools</groupId>
-            <artifactId>paxtools-trove</artifactId>
-            <version>${paxtools.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>${slf4j.version}</version>
@@ -260,9 +255,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>javax.xml</groupId>
+            <groupId>javax.xml.bind</groupId>
             <artifactId>jaxb-api</artifactId>
-            <version>2.1</version>
+            <version>2.3.1</version>
         </dependency>
     </dependencies>
 
