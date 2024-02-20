@@ -38,6 +38,7 @@ public class DrugbankToBiopax {
             FileInputStream drugBankStream = new FileInputStream(drugBankFile);
 
             DrugbankToBiopaxConverter drugbankToBiopaxConverter = new DrugbankToBiopaxConverter();
+            drugbankToBiopaxConverter.setXmlBase("drugbank:");
             Model model = drugbankToBiopaxConverter.convert(drugBankStream);
 
             String outputFile = commandLine.getOptionValue("o");

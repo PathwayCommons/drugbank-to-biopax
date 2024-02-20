@@ -1,6 +1,7 @@
 package ca.drugbank.converter;
 
 import ca.drugbank.model.*;
+import org.apache.commons.lang3.StringUtils;
 import org.biopax.paxtools.controller.ModelUtils;
 import org.biopax.paxtools.model.BioPAXElement;
 import org.biopax.paxtools.model.BioPAXFactory;
@@ -45,7 +46,7 @@ public class DrugbankToBiopaxConverter {
         return x;
     }
 
-    private String xmlBase = "http://www.drugbank.ca/#";
+    private String xmlBase = "";
 
     public String getXmlBase() {
         return xmlBase;
@@ -56,12 +57,12 @@ public class DrugbankToBiopaxConverter {
     }
 
     private String completeId(String id) {
-        return (id.startsWith("http://identifiers.org/")) ? id : getXmlBase() + id;
+        return (StringUtils.containsAny(id,"identifiers.org/", "bioregistry.io/"))
+            ? id : getXmlBase() + id;
     }
 
     public Model convert(InputStream drugBankStream) throws JAXBException {
         Model model = bioPAXFactory.createModel();
-
         JAXBContext jaxbContext = JAXBContext.newInstance("ca.drugbank.model");
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
         Object unmarshalled = unmarshaller.unmarshal(drugBankStream);
@@ -192,7 +193,7 @@ public class DrugbankToBiopaxConverter {
 
             String source = polypeptideType.getSource();
             if(source == null || source.isEmpty()) {
-                source = "UniProtKB";
+                source = "uniprot";
             }
             UnificationXref unificationXref = findOrCreateXref(model, UnificationXref.class, pid, source);
             proteinReference.addXref(unificationXref);
@@ -275,7 +276,7 @@ public class DrugbankToBiopaxConverter {
         if(drug.getGeneralReferences() != null) {
             if (drug.getGeneralReferences().getArticles() != null) {
                 for (ArticleType article : drug.getGeneralReferences().getArticles().getArticle()) {
-                    String uri = "http://identifiers.org/pubmed/" + article.getPubmedId();
+                    String uri = "bioregistry.io/pubmed:" + article.getPubmedId();
                     PublicationXref px = (PublicationXref) model.getByID(uri);
                     if(px == null) {
                         px = create(PublicationXref.class, uri);
@@ -305,7 +306,7 @@ public class DrugbankToBiopaxConverter {
             }
             if (drug.getGeneralReferences().getTextbooks() != null) {
                 for (TextbookType tb : drug.getGeneralReferences().getTextbooks().getTextbook()) {
-                    String uri = "http://identifiers.org/isbn/" + tb.getIsbn();
+                    String uri = "bioregistry.io/isbn:" + tb.getIsbn();
                     PublicationXref px = (PublicationXref) model.getByID(uri);
                     if(px == null) {
                         px = create(PublicationXref.class, uri);
